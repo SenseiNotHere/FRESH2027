@@ -8,8 +8,12 @@ from commands2.button import CommandGenericHID
 from wpilib import XboxController, SendableChooser, SmartDashboard
 
 from commands import HolonomicDrive
-from constants.constants import OIConstants
-from subsystems import DriveSubsystem, BadSimPhysics, AutonomousSubsystem, AutoBuilder
+from constants import OIConstants
+from subsystems import DriveSubsystem, AutonomousSubsystem, OrchestraSubsystem
+from superstructure.superstructure import Superstructure
+from pathplannerlib.auto import AutoBuilder
+
+
 from utils import log, print_banner
 
 
@@ -25,8 +29,6 @@ class RobotContainer:
         log("RobotContainer", "Initializing DriveSubsystem...")
         self.vroomvroom = DriveSubsystem(maxSpeedScaleFactor=lambda: 1.0)
 
-        if commands2.TimedCommandRobot.isSimulation():
-            self.vroomvroom.simPhysics = BadSimPhysics(self.vroomvroom, robot)
 
         log("RobotContainer", "DriveSubsystem Initialized!")
 
@@ -43,19 +45,17 @@ class RobotContainer:
         )
         log("RobotContainer", "Driver Controller Initialized!")
 
+        # Choosers
+        log("RobotContainer", "Initializing Choosers...")
         # Auto Chooser
-        log("RobotContainer", "Initializing Auto Chooser...")
-        
         self.autoChooser = AutoBuilder.buildAutoChooser()
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
-        log("RobotContainer", "Auto Chooser Initialized!")
 
         # Test Chooser
-        log("RobotContainer", "Initializing Test Chooser...")
         self.testChooser = SendableChooser()
         self.testChooser.setDefaultOption("None", None)
         SmartDashboard.putData("Test Chooser", self.testChooser)
-        log("RobotContainer", "Test Chooser Initialized!")
+        log("RobotContainer", "Choosers Initialized!")
 
         # Default Drive Command
         log("RobotContainer", "Setting Default Drive Command...")
@@ -78,6 +78,23 @@ class RobotContainer:
             )
         )
         log("RobotContainer", "Default Drive Command Set!")
+
+        
+        # Orchestra Subsystem
+        log("RobotContainer", "Initializing OrchestraSubsystem...")
+        self.orchestraSubsystem = OrchestraSubsystem(
+            driveSubsystem=self.vroomvroom
+        )
+        log("RobotContainer", "OrchestraSubsystem Initialized!")
+
+        # Superstructure - MUST BE LAST!
+        log("RobotContainer", "Initializing Superstructure...")
+        self.superstructure = Superstructure(
+            drivetrain=self.vroomvroom,
+            orchestra=self.orchestraSubsystem,
+            driverController=self.vroomvroomController,
+        )
+        log("RobotContainer", "Superstructure Initialized!")
 
         print_banner("ROBOT INITIALIZATION COMPLETE")
 

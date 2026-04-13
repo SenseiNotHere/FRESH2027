@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 from commands2 import Subsystem
 from wpilib import SmartDashboard, Field2d, DriverStation, RobotBase, Timer
@@ -20,7 +19,7 @@ from phoenix6.swerve import (
 
 from phoenix6.swerve.requests import ApplyFieldSpeeds, ApplyRobotSpeeds, SwerveDriveBrake
 
-from constants.constants import SwerveConstants, ModuleConstants
+from constants import SwerveConstants, ModuleConstants
 
 
 CALIBRATING_DRIVETRAIN = False
@@ -135,7 +134,6 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
 
         # Sim stuff
         self.last_speeds = ChassisSpeeds(0, 0, 0)
-        self.simPhysics: Optional[BadSimPhysics] = None
 
     # Periodic
     def periodic(self) -> None:
@@ -242,33 +240,3 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             self.alliance = DriverStation.getAlliance()
         
         return self.alliance
-
-class BadSimPhysics:
-    def __init__(self, drivetrain: DriveSubsystem, robot: RobotBase):
-        self.drivetrain = drivetrain
-        self.robot = robot
-        self.t = 0
-        self.x = 0.0
-        self.y = 0.0
-        self.heading = Rotation2d()
-
-    def periodic(self):
-        past = self.t
-        self.t = Timer.getFPGATimestamp()
-
-        if past == 0:
-            return
-
-        dt = self.t - past
-
-        if not self.robot.isEnabled():
-            return
-
-        speeds = self.drivetrain.last_speeds  # instead of get_state().speeds
-
-        self.heading = self.heading + Rotation2d(speeds.omega * dt)
-        self.x += speeds.vx * dt
-        self.y += speeds.vy * dt
-
-        new_pose = Pose2d(self.x, self.y, self.heading)
-        self.drivetrain.reset_pose(new_pose)

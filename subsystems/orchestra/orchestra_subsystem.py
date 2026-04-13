@@ -4,7 +4,7 @@ from commands2 import Subsystem
 from phoenix6.orchestra import Orchestra
 from wpilib import SendableChooser, SmartDashboard
 
-from subsystems import DriveSubsystem
+from subsystems.drive.drive_subsystem import DriveSubsystem
 
 from utils import log
 

@@ -40,10 +40,6 @@ class FRCRobot(TimedCommandRobot):
     def robotPeriodic(self) -> None:
         super().robotPeriodic()
 
-        if self.isSimulation():
-            simPhysics = getattr(self.robot_container.vroomvroom, "simPhysics", None)
-            if simPhysics:
-                simPhysics.periodic()
 
     def testInit(self) -> None:
         CommandScheduler.getInstance().cancelAll()

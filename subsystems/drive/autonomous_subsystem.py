@@ -10,10 +10,10 @@ from pathplannerlib.auto import NamedCommands, EventTrigger
 
 from wpimath.kinematics import ChassisSpeeds
 
-from constants.constants import AutoConstants
+from constants import AutoConstants
 
 from .drive_subsystem import DriveSubsystem
-# from superstructure import Superstructure, RobotState, RobotReadiness
+from superstructure import Superstructure, RobotState, RobotReadiness, ReadinessList
 
 from utils import log
 

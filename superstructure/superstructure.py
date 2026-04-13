@@ -3,8 +3,12 @@ from commands2 import FunctionalCommand
 from commands2.button import CommandGenericHID
 
 from subsystems.orchestra.orchestra_subsystem import OrchestraSubsystem
-from superstructure import SuperstructureStates, SuperstructureHelpers, RobotState, RobotReadiness, AuxiliaryActions
-from subsystems import DriveSubsystem
+from .superstructure_states import SuperstructureStates
+from .superstructure_helpers import SuperstructureHelpers
+from .robot_state import RobotState, RobotReadiness, ReadinessList
+from .auxiliary_actions import AuxiliaryActions
+
+from subsystems.drive.drive_subsystem import DriveSubsystem
 
 
 class Superstructure(SuperstructureStates, SuperstructureHelpers):
@@ -12,8 +16,8 @@ class Superstructure(SuperstructureStates, SuperstructureHelpers):
 
     def __init__(
             self,
-            drivetrain: DriveSubsystem | None = None,
-            orchestra: OrchestraSubsystem | None = None,
+            drivetrain: DriveSubsystem,
+            orchestra: OrchestraSubsystem,
             driverController: CommandGenericHID | None = None,
             operatorController: CommandGenericHID | None = None,
     ):
