@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import Optional
 
 from commands2 import Subsystem
 from wpilib import SmartDashboard, Field2d, DriverStation, RobotBase, Timer
@@ -19,9 +20,10 @@ from phoenix6.swerve import (
 
 from phoenix6.swerve.requests import ApplyFieldSpeeds, ApplyRobotSpeeds, SwerveDriveBrake
 
-from constants.constants import DrivingConstants, ModuleConstants
+from constants.constants import SwerveConstants, ModuleConstants
 
 
+CALIBRATING_DRIVETRAIN = False
 class DriveSubsystem(Subsystem, SwerveDrivetrain):
     def __init__(self, maxSpeedScaleFactor):
         Subsystem.__init__(self)
@@ -44,48 +46,48 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         )
 
         front_left = module_factory.create_module_constants(
-            DrivingConstants.kFrontLeftDriving,
-            DrivingConstants.kFrontLeftTurning,
-            DrivingConstants.kFrontLeftTurningEncoder,
+            SwerveConstants.kFrontLeftDriving,
+            SwerveConstants.kFrontLeftTurning,
+            SwerveConstants.kFrontLeftTurningEncoder,
             ModuleConstants.kFrontLeftTurningEncoderOffset,
-            DrivingConstants.kFrontLeftX,
-            DrivingConstants.kFrontLeftY,
+            SwerveConstants.kFrontLeftX,
+            SwerveConstants.kFrontLeftY,
             ModuleConstants.kFrontLeftDriveMotorInverted,
             ModuleConstants.kTurningMotorInverted,
             ModuleConstants.kTurningEncoderInverted
         )
         
         front_right = module_factory.create_module_constants(
-            DrivingConstants.kFrontRightDriving,
-            DrivingConstants.kFrontRightTurning,
-            DrivingConstants.kFrontRightTurningEncoder,
+            SwerveConstants.kFrontRightDriving,
+            SwerveConstants.kFrontRightTurning,
+            SwerveConstants.kFrontRightTurningEncoder,
             ModuleConstants.kFrontRightTurningEncoderOffset,
-            DrivingConstants.kFrontRightX,
-            DrivingConstants.kFrontRightY,
+            SwerveConstants.kFrontRightX,
+            SwerveConstants.kFrontRightY,
             ModuleConstants.kFrontRightDriveMotorInverted,
             ModuleConstants.kTurningMotorInverted,
             ModuleConstants.kTurningEncoderInverted
         )
 
         back_left = module_factory.create_module_constants(
-            DrivingConstants.kBackLeftDriving,
-            DrivingConstants.kBackLeftTurning,
-            DrivingConstants.kBackLeftTurningEncoder,
+            SwerveConstants.kBackLeftDriving,
+            SwerveConstants.kBackLeftTurning,
+            SwerveConstants.kBackLeftTurningEncoder,
             ModuleConstants.kBackLeftTurningEncoderOffset,
-            DrivingConstants.kBackLeftX,
-            DrivingConstants.kBackLeftY,
+            SwerveConstants.kBackLeftX,
+            SwerveConstants.kBackLeftY,
             ModuleConstants.kBackLeftDriveMotorInverted,
             ModuleConstants.kTurningMotorInverted,
             ModuleConstants.kTurningEncoderInverted
         )
 
         back_right = module_factory.create_module_constants(
-            DrivingConstants.kBackRightDriving,
-            DrivingConstants.kBackRightTurning,
-            DrivingConstants.kBackRightTurningEncoder,
+            SwerveConstants.kBackRightDriving,
+            SwerveConstants.kBackRightTurning,
+            SwerveConstants.kBackRightTurningEncoder,
             ModuleConstants.kBackRightTurningEncoderOffset,
-            DrivingConstants.kBackRightX,
-            DrivingConstants.kBackRightY,
+            SwerveConstants.kBackRightX,
+            SwerveConstants.kBackRightY,
             ModuleConstants.kBackRightDriveMotorInverted,
             ModuleConstants.kTurningMotorInverted,
             ModuleConstants.kTurningEncoderInverted
@@ -94,7 +96,7 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         drivetrain_constants = (
             SwerveDrivetrainConstants()
             .with_can_bus_name("rio")
-            .with_pigeon2_id(DrivingConstants.kPigeonID)
+            .with_pigeon2_id(SwerveConstants.kPigeonID)
         )
 
         # Drivetrain Builder
@@ -104,7 +106,7 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             TalonFX,
             CANcoder,
             drivetrain_constants,
-            ModuleConstants.kOdometryUpdateFrequency,
+            SwerveConstants.kOdometryUpdateFrequency,
             [
                 front_left,
                 front_right,
@@ -119,8 +121,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         self.brake_request = SwerveDriveBrake()
 
         # Slew Rate Limiters
-        self.xy_limit = SlewRateLimiter(DrivingConstants.kMaxMetersPerSecond)
-        self.rot_limit = SlewRateLimiter(DrivingConstants.kMaxAngularSpeed)
+        self.xy_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
+        self.rot_limit = SlewRateLimiter(SwerveConstants.kMaxAngularSpeed)
 
         # Field 2D
         self.field = Field2d()
@@ -131,8 +133,9 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         if DriverStation.Alliance is not None:
             self.alliance = DriverStation.getAlliance()
 
-        # Speeds for Sim
+        # Sim stuff
         self.last_speeds = ChassisSpeeds(0, 0, 0)
+        self.simPhysics: Optional[BadSimPhysics] = None
 
     # Periodic
     def periodic(self) -> None:
@@ -142,6 +145,12 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         SmartDashboard.putNumber("Drivetrain/X", pose.x)
         SmartDashboard.putNumber("Drivetrain/Y", pose.y)
         SmartDashboard.putNumber("Drivetrain/Heading", pose.rotation().degrees())
+
+        # Drivetrain Calibration
+        if CALIBRATING_DRIVETRAIN:
+            dist_from_origin = math.hypot(pose.x, pose.y) # distance from origin
+            SmartDashboard.putNumber("Drivetrain/Calibrating/DistanceFromOrigin", dist_from_origin)
+            # Great used for calibrating the gyro
 
     def resetOdometry(self, pose: Pose2d):
         """
@@ -191,9 +200,9 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             xSpeed *= norm
             ySpeed *= norm
             
-        vx = xSpeed * DrivingConstants.kMaxMetersPerSecond
-        vy = ySpeed * DrivingConstants.kMaxMetersPerSecond
-        omega = rot * DrivingConstants.kMaxAngularSpeed
+        vx = xSpeed * SwerveConstants.kMaxMetersPerSecond
+        vy = ySpeed * SwerveConstants.kMaxMetersPerSecond
+        omega = rot * SwerveConstants.kMaxAngularSpeed
 
         if rateLimit:
             vx = self.xy_limit.calculate(vx)
@@ -243,7 +252,7 @@ class BadSimPhysics:
         self.y = 0.0
         self.heading = Rotation2d()
 
-    def periodic(self):  # <-- needs to be indented inside the class
+    def periodic(self):
         past = self.t
         self.t = Timer.getFPGATimestamp()
 

@@ -11,81 +11,76 @@ from phoenix6.configs import Slot0Configs
 from pathplannerlib.config import RobotConfig
 
 
-class KrakenX60:
-    kFreeSpeedRpm = 5800
-    kMaxSpeedMetersPerSecond = 2.8
-
-
-class DrivingConstants:
-
-    # Robot Geometry
+class SwerveConstants:
+    # Robot geometry
     kTrackWidth = units.inchesToMeters(26.5)
     kWheelBase = units.inchesToMeters(26.5)
 
     halfWheelBase = kWheelBase / 2
     halfTrackWidth = kTrackWidth / 2
 
-    # Module positions
-    kFrontLeftX = halfWheelBase
-    kFrontLeftY = halfTrackWidth
-
+    kFrontLeftX  = halfWheelBase
+    kFrontLeftY  = halfTrackWidth
     kFrontRightX = halfWheelBase
     kFrontRightY = -halfTrackWidth
-
-    kBackLeftX = -halfWheelBase
-    kBackLeftY = halfTrackWidth
-
-    kBackRightX = -halfWheelBase
-    kBackRightY = -halfTrackWidth
+    kBackLeftX   = -halfWheelBase
+    kBackLeftY   = halfTrackWidth
+    kBackRightX  = -halfWheelBase
+    kBackRightY  = -halfTrackWidth
 
     kModulePositions = [
-        Translation2d(kFrontLeftX, kFrontLeftY),
+        Translation2d(kFrontLeftX,  kFrontLeftY),
         Translation2d(kFrontRightX, kFrontRightY),
-        Translation2d(kBackLeftX, kBackLeftY),
-        Translation2d(kBackRightX, kBackRightY),
+        Translation2d(kBackLeftX,   kBackLeftY),
+        Translation2d(kBackRightX,  kBackRightY),
     ]
 
     kDriveKinematics = SwerveDrive4Kinematics(*kModulePositions)
-    
-    # Physical Limits
+
+    # Physical limits
     kMaxMetersPerSecond = 3.0
     kMaxAngularSpeed = math.tau
 
-    # Slew Rate Limiting
-    kMagnitudeSlewRate = 9.8
+    # Slew rate limiting
+    kMagnitudeSlewRate  = 9.8
     kRotationalSlewRate = 12.0
 
-    # CAN IDs | Drive Motors
-    kFrontLeftDriving = 7
+    # CAN IDs: drive motors
+    kFrontLeftDriving  = 7
     kFrontRightDriving = 5
-    kBackLeftDriving = 1
-    kBackRightDriving = 3
+    kBackLeftDriving   = 1
+    kBackRightDriving  = 3
 
-    # CAN IDs | Turning Motors
-    kFrontLeftTurning = 8
+    # CAN IDs: turning motors
+    kFrontLeftTurning  = 8
     kFrontRightTurning = 6
-    kBackLeftTurning = 2
-    kBackRightTurning = 4
+    kBackLeftTurning   = 2
+    kBackRightTurning  = 4
 
-    # CAN IDs | Absolute Encoders
-    kFrontLeftTurningEncoder = 4
+    # CAN IDs: absolute encoders
+    kFrontLeftTurningEncoder  = 4
     kFrontRightTurningEncoder = 3
-    kBackLeftTurningEncoder = 1
-    kBackRightTurningEncoder = 2
-    
-    # CAN IDs | Odometry
+    kBackLeftTurningEncoder   = 1
+    kBackRightTurningEncoder  = 2
+
+    # CAN IDs: odometry
     kPigeonID = 0
-    
+
     # Gyro
     kGyroReversed = -1
 
-    # Lock Deadbands
+    # Odometry
+    kOdometryUpdateFrequency = 250.0  # Hz
+
+    # Lock deadbands
     kLockVxDeadband = 0.05
     kLockVyDeadband = 0.05
     kLockOmegaDeadband = 0.10
 
-
 class ModuleConstants:
+    # Kraken X60 specs
+    kMotorFreeSpeedRpm = 5800
+    kMotorMaxSpeedMetersPerSecond = 2.8
 
     # Mechanical
     kDrivingMotorPinionTeeth = 14
@@ -95,21 +90,18 @@ class ModuleConstants:
     kWheelDiameterMeters = ((0.0965 / 0.97) / 0.98)
     kWheelCircumferenceMeters = kWheelDiameterMeters * math.pi
 
-    # SDS MK4i L2 Kraken
+    # SDS MK4i L2 Kraken gear ratios
     kDriveGearRatio = 6.75
     kTurningGearRatio = 150.0 / 7.0
-
     kWheelRadius = 0.0508
 
-    # Mechanical
     kSlipCurrent = 300.0
-    kDrivingMotorFreeSpeedRps = KrakenX60.kFreeSpeedRpm / 60.0
-
-    kDriveWheelFreeSpeedRps = (
+    kDrivingMotorFreeSpeedRps = kMotorFreeSpeedRpm / 60.0
+    kDriveWheelFreeSpeedRps  = (
         kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters
     ) / kDrivingMotorReduction
 
-    # Module Inversions
+    # Inversions
     kTurningEncoderInverted = False
     kTurningMotorInverted = False
 
@@ -118,13 +110,13 @@ class ModuleConstants:
     kBackLeftDriveMotorInverted = True
     kBackRightDriveMotorInverted = False
 
-    # Absolute Encoder Offsets
+    # Absolute encoder offsets
     kFrontLeftTurningEncoderOffset = 0.264892578125
     kFrontRightTurningEncoderOffset = 0.22265625
-    kBackLeftTurningEncoderOffset = -0.080078125
+    kBackLeftTurningEncoderOffset  = -0.080078125
     kBackRightTurningEncoderOffset = 0.09521484375
 
-    # Gains
+    # PID gains
     kDriveGains = (
         Slot0Configs()
         .with_k_p(0.1)
@@ -139,35 +131,31 @@ class ModuleConstants:
         .with_k_d(0.0)
     )
 
-    # Encoders
+    # Encoder factors
     kTurningEncoderPositionFactor = math.tau
     kTurningEncoderVelocityFactor = math.tau / 60.0
 
     kTurningEncoderPositionPIDMinInput = 0.0
     kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor
 
-    # Neutral Modes
+    # Neutral modes
     kDrivingMotorIdleMode = NeutralModeValue(NeutralModeValue.BRAKE)
     kTurningMotorIdleMode = NeutralModeValue(NeutralModeValue.COAST)
 
-    # Current Limits
+    # Current limits
     kDrivingMotorCurrentLimit = 70
     kDrivingMotorStatorCurrentLimit = 120
-
     kTurningMotorCurrentLimit = 40
     kTurningStatorCurrentLimit = 60
 
-    # Driving Control
+    # Drive control
     kDrivingMinSpeedMetersPerSecond = 0.01
     kSteerDriveCouplingRatio = 3.857142857142857
 
-    kSteerKs = 0.1
+    kSteerKs           = 0.1
     kSteerHoldDeadband = math.radians(0.25) * (
         1.0 / ((2 * math.pi) / kTurningMotorReduction)
     )
-
-    # Odometry
-    kOdometryUpdateFrequency = 250.0 # in Hz
 
 class OIConstants:
 
