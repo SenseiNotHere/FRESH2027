@@ -64,7 +64,7 @@ class SwerveConstants:
     kBackRightTurningEncoder  = 2
 
     # CAN IDs: odometry
-    kPigeonID = 0
+    kPigeonID = 1
 
     # Gyro
     kGyroReversed = -1
@@ -128,7 +128,7 @@ class ModuleConstants:
         Slot0Configs()
         .with_k_p(100.0)
         .with_k_i(0.0)
-        .with_k_d(0.0)
+        .with_k_d(0.5)
     )
 
     # Encoder factors

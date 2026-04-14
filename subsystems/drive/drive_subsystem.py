@@ -45,8 +45,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         )
 
         front_left = module_factory.create_module_constants(
-            SwerveConstants.kFrontLeftDriving,
             SwerveConstants.kFrontLeftTurning,
+            SwerveConstants.kFrontLeftDriving,
             SwerveConstants.kFrontLeftTurningEncoder,
             ModuleConstants.kFrontLeftTurningEncoderOffset,
             SwerveConstants.kFrontLeftX,
@@ -55,10 +55,10 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             ModuleConstants.kTurningMotorInverted,
             ModuleConstants.kTurningEncoderInverted
         )
-        
+
         front_right = module_factory.create_module_constants(
-            SwerveConstants.kFrontRightDriving,
             SwerveConstants.kFrontRightTurning,
+            SwerveConstants.kFrontRightDriving,
             SwerveConstants.kFrontRightTurningEncoder,
             ModuleConstants.kFrontRightTurningEncoderOffset,
             SwerveConstants.kFrontRightX,
@@ -69,8 +69,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         )
 
         back_left = module_factory.create_module_constants(
-            SwerveConstants.kBackLeftDriving,
             SwerveConstants.kBackLeftTurning,
+            SwerveConstants.kBackLeftDriving,
             SwerveConstants.kBackLeftTurningEncoder,
             ModuleConstants.kBackLeftTurningEncoderOffset,
             SwerveConstants.kBackLeftX,
@@ -81,8 +81,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         )
 
         back_right = module_factory.create_module_constants(
-            SwerveConstants.kBackRightDriving,
             SwerveConstants.kBackRightTurning,
+            SwerveConstants.kBackRightDriving,
             SwerveConstants.kBackRightTurningEncoder,
             ModuleConstants.kBackRightTurningEncoderOffset,
             SwerveConstants.kBackRightX,
