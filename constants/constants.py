@@ -66,9 +66,6 @@ class SwerveConstants:
     # CAN IDs: odometry
     kPigeonID = 1
 
-    # Gyro
-    kGyroReversed = -1
-
     # Odometry
     kOdometryUpdateFrequency = 250.0  # Hz
 
@@ -77,30 +74,22 @@ class SwerveConstants:
     kLockVyDeadband = 0.05
     kLockOmegaDeadband = 0.10
 
+
 class ModuleConstants:
     # Kraken X60 specs
     kMotorFreeSpeedRpm = 5800
-    kMotorMaxSpeedMetersPerSecond = 2.8
 
-    # Mechanical
-    kDrivingMotorPinionTeeth = 14
-    kDrivingMotorReduction = 6.12
-    kTurningMotorReduction = 287 / 11.0
-
-    kWheelDiameterMeters = ((0.0965 / 0.97) / 0.98)
-    kWheelCircumferenceMeters = kWheelDiameterMeters * math.pi
-
-    # SDS MK4i L2 Kraken gear ratios
-    kDriveGearRatio = 6.75
-    kTurningGearRatio = 150.0 / 7.0
+    # SDS MK5n L2 Kraken gear ratios
+    kDriveGearRatio = 5.36
+    kTurningGearRatio = 18.75
     kWheelRadius = 0.0508
 
     kSlipCurrent = 300.0
     kDrivingMotorFreeSpeedRps = kMotorFreeSpeedRpm / 60.0
     kSpeedAt12Volts = (kDrivingMotorFreeSpeedRps / kDriveGearRatio) * (2 * math.pi * kWheelRadius)
-    kDriveWheelFreeSpeedRps  = (
-        kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters
-    ) / kDrivingMotorReduction
+
+    # Steer/drive coupling (MK5n)
+    kSteerDriveCouplingRatio = 3.125
 
     # Inversions
     kTurningEncoderInverted = False
@@ -133,16 +122,9 @@ class ModuleConstants:
         .with_k_d(0.5)
     )
 
-    # Encoder factors
-    kTurningEncoderPositionFactor = math.tau
-    kTurningEncoderVelocityFactor = math.tau / 60.0
-
-    kTurningEncoderPositionPIDMinInput = 0.0
-    kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor
-
     # Neutral modes
-    kDrivingMotorIdleMode = NeutralModeValue(NeutralModeValue.BRAKE)
-    kTurningMotorIdleMode = NeutralModeValue(NeutralModeValue.COAST)
+    kDrivingMotorIdleMode = NeutralModeValue.BRAKE
+    kTurningMotorIdleMode = NeutralModeValue.BRAKE
 
     # Current limits
     kDrivingMotorCurrentLimit = 70
@@ -150,14 +132,6 @@ class ModuleConstants:
     kTurningMotorCurrentLimit = 40
     kTurningStatorCurrentLimit = 60
 
-    # Drive control
-    kDrivingMinSpeedMetersPerSecond = 0.01
-    kSteerDriveCouplingRatio = 3.857142857142857
-
-    kSteerKs           = 0.1
-    kSteerHoldDeadband = math.radians(0.25) * (
-        1.0 / ((2 * math.pi) / kTurningMotorReduction)
-    )
 
 class OIConstants:
 
@@ -166,11 +140,10 @@ class OIConstants:
 
     kDriveDeadband = 0.05
 
+
 class AutoConstants:
 
     config = RobotConfig.fromGUISettings()
-
-    kUseSqrtControl = True
 
     kMaxMetersPerSecond = 1.2
     kMaxAccelerationMetersPerSecondSquared = 3.5
@@ -180,12 +153,6 @@ class AutoConstants:
 
     kPController = 1.0
     kPThetaController = 0.5
-
-    kIXController = 0.0
-    kIThetaController = 0.0
-
-    kDXController = 0.0
-    kDThetaController = 0.0
 
     kThetaControllerConstraints = TrapezoidProfileRadians.Constraints(
         kMaxAngularSpeedRadiansPerSecond,

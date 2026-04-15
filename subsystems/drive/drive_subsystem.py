@@ -10,7 +10,6 @@ from wpimath.filter import SlewRateLimiter
 
 from phoenix6.hardware import TalonFX, CANcoder
 from phoenix6.configs import MotorOutputConfigs
-from phoenix6.signals import NeutralModeValue
 
 from phoenix6.swerve import (
     SwerveDrivetrain,
@@ -118,12 +117,14 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             ] # Module constants list
         )
         
-        # Configure all motors to brake on neutral
-        brake_config = MotorOutputConfigs()
-        brake_config.neutral_mode = NeutralModeValue.BRAKE
+        # Configure motor neutral modes
+        drive_output_config = MotorOutputConfigs()
+        drive_output_config.neutral_mode = ModuleConstants.kDrivingMotorIdleMode
+        steer_output_config = MotorOutputConfigs()
+        steer_output_config.neutral_mode = ModuleConstants.kTurningMotorIdleMode
         for module in self.modules:
-            module.drive_motor.configurator.apply(brake_config)
-            module.steer_motor.configurator.apply(brake_config)
+            module.drive_motor.configurator.apply(drive_output_config)
+            module.steer_motor.configurator.apply(steer_output_config)
 
         # Requests
         self.field_speeds_request = ApplyFieldSpeeds()
@@ -131,9 +132,9 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         self.brake_request = SwerveDriveBrake()
 
         # Slew Rate Limiters
-        self.x_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
-        self.y_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
-        self.rot_limit = SlewRateLimiter(SwerveConstants.kMaxAngularSpeed)
+        self.x_limit = SlewRateLimiter(SwerveConstants.kMagnitudeSlewRate)
+        self.y_limit = SlewRateLimiter(SwerveConstants.kMagnitudeSlewRate)
+        self.rot_limit = SlewRateLimiter(SwerveConstants.kRotationalSlewRate)
 
         # Field 2D
         self.field = Field2d()
@@ -149,6 +150,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
 
     # Periodic
     def periodic(self) -> None:
+        self.getAlliance()
+
         pose = self.get_state().pose
         self.field.setRobotPose(pose)
         
@@ -210,9 +213,10 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             xSpeed *= norm
             ySpeed *= norm
             
-        vx = xSpeed * SwerveConstants.kMaxMetersPerSecond
-        vy = ySpeed * SwerveConstants.kMaxMetersPerSecond
-        omega = rot * SwerveConstants.kMaxAngularSpeed
+        scale = self.maxSpeedScaleFactor() if self.maxSpeedScaleFactor is not None else 1.0
+        vx = xSpeed * SwerveConstants.kMaxMetersPerSecond * scale
+        vy = ySpeed * SwerveConstants.kMaxMetersPerSecond * scale
+        omega = rot * SwerveConstants.kMaxAngularSpeed * scale
 
         if rateLimit:
             vx = self.x_limit.calculate(vx)
