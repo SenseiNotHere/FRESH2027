@@ -9,7 +9,7 @@ from wpimath.kinematics import ChassisSpeeds
 from wpimath.filter import SlewRateLimiter
 
 from phoenix6.hardware import TalonFX, CANcoder
-from phoenix6.configs import MotorOutputConfigs
+from phoenix6.configs import MotorOutputConfigs, CurrentLimitsConfigs
 
 from phoenix6.swerve import (
     SwerveDrivetrain,
@@ -122,9 +122,25 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         drive_output_config.neutral_mode = ModuleConstants.kDrivingMotorIdleMode
         steer_output_config = MotorOutputConfigs()
         steer_output_config.neutral_mode = ModuleConstants.kTurningMotorIdleMode
+
+        # Configure current limits
+        drive_current_config = CurrentLimitsConfigs()
+        drive_current_config.supply_current_limit = ModuleConstants.kDrivingMotorCurrentLimit
+        drive_current_config.supply_current_limit_enable = True
+        drive_current_config.stator_current_limit = ModuleConstants.kDrivingMotorStatorCurrentLimit
+        drive_current_config.stator_current_limit_enable = True
+
+        steer_current_config = CurrentLimitsConfigs()
+        steer_current_config.supply_current_limit = ModuleConstants.kTurningMotorCurrentLimit
+        steer_current_config.supply_current_limit_enable = True
+        steer_current_config.stator_current_limit = ModuleConstants.kTurningStatorCurrentLimit
+        steer_current_config.stator_current_limit_enable = True
+
         for module in self.modules:
             module.drive_motor.configurator.apply(drive_output_config)
+            module.drive_motor.configurator.apply(drive_current_config)
             module.steer_motor.configurator.apply(steer_output_config)
+            module.steer_motor.configurator.apply(steer_current_config)
 
         # Requests
         self.field_speeds_request = ApplyFieldSpeeds()
@@ -253,12 +269,16 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         return self.get_state().speeds
 
     def getAlliance(self):
+        operator_perspective_set = False
+
         if self.alliance is None:
             self.alliance = DriverStation.getAlliance()
-            if self.alliance is not None:
-                if self.alliance == DriverStation.Alliance.kRed:
-                    self.set_operator_perspective_forward(Rotation2d.fromDegrees(180))
-                else:
-                    self.set_operator_perspective_forward(Rotation2d.fromDegrees(0))
+        
+        if self.alliance is not None and not operator_perspective_set:
+            operator_perspective_set = True
+            if self.alliance == DriverStation.Alliance.kRed:
+                self.set_operator_perspective_forward(Rotation2d.fromDegrees(180))
+            else:
+                self.set_operator_perspective_forward(Rotation2d.fromDegrees(0))
 
         return self.alliance
