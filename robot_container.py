@@ -20,6 +20,12 @@ from utils import log, print_banner
 class RobotContainer:
     """
     Minimal robot container with drivetrain only.
+
+    Subsystems Dictionary:
+    - vroomvroom: DriveSubsystem
+    - smartyPlanner: AutonomousSubsystem
+    - musically: OrchestraSubsystem
+    - megamente: Superstructure
     """
 
     def __init__(self, robot):
@@ -34,7 +40,7 @@ class RobotContainer:
 
         # Autonomous Subsystem
         log("RobotContainer", "Initializing AutonomousSubsystem...")
-        self.autonomousSubsystem = AutonomousSubsystem(self.vroomvroom, self)
+        self.smartyPlanner = AutonomousSubsystem(self.vroomvroom, self)
         self._lastPreviewedAuto = None
         log("RobotContainer", "AutonomousSubsystem Initialized!")
 
@@ -82,16 +88,16 @@ class RobotContainer:
         
         # Orchestra Subsystem
         log("RobotContainer", "Initializing OrchestraSubsystem...")
-        self.orchestraSubsystem = OrchestraSubsystem(
+        self.musically = OrchestraSubsystem(
             driveSubsystem=self.vroomvroom
         )
         log("RobotContainer", "OrchestraSubsystem Initialized!")
 
         # Superstructure - MUST BE LAST!
         log("RobotContainer", "Initializing Superstructure...")
-        self.superstructure = Superstructure(
+        self.megamente = Superstructure(
             drivetrain=self.vroomvroom,
-            orchestra=self.orchestraSubsystem,
+            orchestra=self.musically,
             driverController=self.vroomvroomController,
         )
         log("RobotContainer", "Superstructure Initialized!")
@@ -102,7 +108,7 @@ class RobotContainer:
         selected = self.autoChooser.getSelected()
 
         if selected != self._lastPreviewedAuto:
-            self.autonomousSubsystem.drawAuto(selected)
+            self.smartyPlanner.drawAuto(selected)
             self._lastPreviewedAuto = selected
 
     # Autonomous

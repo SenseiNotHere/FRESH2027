@@ -9,6 +9,8 @@ from wpimath.kinematics import ChassisSpeeds
 from wpimath.filter import SlewRateLimiter
 
 from phoenix6.hardware import TalonFX, CANcoder
+from phoenix6.configs import MotorOutputConfigs
+from phoenix6.signals import NeutralModeValue
 
 from phoenix6.swerve import (
     SwerveDrivetrain,
@@ -42,54 +44,56 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
             .with_drive_motor_gains(ModuleConstants.kDriveGains)
             .with_steer_motor_gains(ModuleConstants.kTurningGains)
             .with_drive_motor_closed_loop_output(ClosedLoopOutputType.TORQUE_CURRENT_FOC)
+            .with_speed_at12_volts(ModuleConstants.kSpeedAt12Volts)
+            .with_coupling_gear_ratio(ModuleConstants.kSteerDriveCouplingRatio)
         )
 
         front_left = module_factory.create_module_constants(
-            SwerveConstants.kFrontLeftTurning,
-            SwerveConstants.kFrontLeftDriving,
-            SwerveConstants.kFrontLeftTurningEncoder,
-            ModuleConstants.kFrontLeftTurningEncoderOffset,
-            SwerveConstants.kFrontLeftX,
-            SwerveConstants.kFrontLeftY,
-            ModuleConstants.kFrontLeftDriveMotorInverted,
-            ModuleConstants.kTurningMotorInverted,
-            ModuleConstants.kTurningEncoderInverted
+            steer_motor_id=SwerveConstants.kFrontLeftTurning,
+            drive_motor_id=SwerveConstants.kFrontLeftDriving,
+            encoder_id=SwerveConstants.kFrontLeftTurningEncoder,
+            encoder_offset=ModuleConstants.kFrontLeftTurningEncoderOffset,
+            location_x=SwerveConstants.kFrontLeftX,
+            location_y=SwerveConstants.kFrontLeftY,
+            drive_motor_inverted=ModuleConstants.kFrontLeftDriveMotorInverted,
+            steer_motor_inverted=ModuleConstants.kTurningMotorInverted,
+            encoder_inverted=ModuleConstants.kTurningEncoderInverted
         )
 
         front_right = module_factory.create_module_constants(
-            SwerveConstants.kFrontRightTurning,
-            SwerveConstants.kFrontRightDriving,
-            SwerveConstants.kFrontRightTurningEncoder,
-            ModuleConstants.kFrontRightTurningEncoderOffset,
-            SwerveConstants.kFrontRightX,
-            SwerveConstants.kFrontRightY,
-            ModuleConstants.kFrontRightDriveMotorInverted,
-            ModuleConstants.kTurningMotorInverted,
-            ModuleConstants.kTurningEncoderInverted
+            steer_motor_id=SwerveConstants.kFrontRightTurning,
+            drive_motor_id=SwerveConstants.kFrontRightDriving,
+            encoder_id=SwerveConstants.kFrontRightTurningEncoder,
+            encoder_offset=ModuleConstants.kFrontRightTurningEncoderOffset,
+            location_x=SwerveConstants.kFrontRightX,
+            location_y=SwerveConstants.kFrontRightY,
+            drive_motor_inverted=ModuleConstants.kFrontRightDriveMotorInverted,
+            steer_motor_inverted=ModuleConstants.kTurningMotorInverted,
+            encoder_inverted=ModuleConstants.kTurningEncoderInverted
         )
 
         back_left = module_factory.create_module_constants(
-            SwerveConstants.kBackLeftTurning,
-            SwerveConstants.kBackLeftDriving,
-            SwerveConstants.kBackLeftTurningEncoder,
-            ModuleConstants.kBackLeftTurningEncoderOffset,
-            SwerveConstants.kBackLeftX,
-            SwerveConstants.kBackLeftY,
-            ModuleConstants.kBackLeftDriveMotorInverted,
-            ModuleConstants.kTurningMotorInverted,
-            ModuleConstants.kTurningEncoderInverted
+            steer_motor_id=SwerveConstants.kBackLeftTurning,
+            drive_motor_id=SwerveConstants.kBackLeftDriving,
+            encoder_id=SwerveConstants.kBackLeftTurningEncoder,
+            encoder_offset=ModuleConstants.kBackLeftTurningEncoderOffset,
+            location_x=SwerveConstants.kBackLeftX,
+            location_y=SwerveConstants.kBackLeftY,
+            drive_motor_inverted=ModuleConstants.kBackLeftDriveMotorInverted,
+            steer_motor_inverted=ModuleConstants.kTurningMotorInverted,
+            encoder_inverted=ModuleConstants.kTurningEncoderInverted
         )
 
         back_right = module_factory.create_module_constants(
-            SwerveConstants.kBackRightTurning,
-            SwerveConstants.kBackRightDriving,
-            SwerveConstants.kBackRightTurningEncoder,
-            ModuleConstants.kBackRightTurningEncoderOffset,
-            SwerveConstants.kBackRightX,
-            SwerveConstants.kBackRightY,
-            ModuleConstants.kBackRightDriveMotorInverted,
-            ModuleConstants.kTurningMotorInverted,
-            ModuleConstants.kTurningEncoderInverted
+            steer_motor_id=SwerveConstants.kBackRightTurning,
+            drive_motor_id=SwerveConstants.kBackRightDriving,
+            encoder_id=SwerveConstants.kBackRightTurningEncoder,
+            encoder_offset=ModuleConstants.kBackRightTurningEncoderOffset,
+            location_x=SwerveConstants.kBackRightX,
+            location_y=SwerveConstants.kBackRightY,
+            drive_motor_inverted=ModuleConstants.kBackRightDriveMotorInverted,
+            steer_motor_inverted=ModuleConstants.kTurningMotorInverted,
+            encoder_inverted=ModuleConstants.kTurningEncoderInverted
         )
 
         drivetrain_constants = (
@@ -101,26 +105,34 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         # Drivetrain Builder
         SwerveDrivetrain.__init__(
             self,
-            TalonFX,
-            TalonFX,
-            CANcoder,
-            drivetrain_constants,
-            SwerveConstants.kOdometryUpdateFrequency,
+            TalonFX, # Drive motor type
+            TalonFX, # Steer motor type
+            CANcoder, # Encoder type
+            drivetrain_constants, # Drivetrain constants
+            SwerveConstants.kOdometryUpdateFrequency, # Odometry update frequency in Hz
             [
                 front_left,
                 front_right,
                 back_left,
                 back_right
-            ]
+            ] # Module constants list
         )
         
+        # Configure all motors to brake on neutral
+        brake_config = MotorOutputConfigs()
+        brake_config.neutral_mode = NeutralModeValue.BRAKE
+        for module in self.modules:
+            module.drive_motor.configurator.apply(brake_config)
+            module.steer_motor.configurator.apply(brake_config)
+
         # Requests
         self.field_speeds_request = ApplyFieldSpeeds()
         self.robot_speeds_request = ApplyRobotSpeeds()
         self.brake_request = SwerveDriveBrake()
 
         # Slew Rate Limiters
-        self.xy_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
+        self.x_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
+        self.y_limit = SlewRateLimiter(SwerveConstants.kMaxMetersPerSecond)
         self.rot_limit = SlewRateLimiter(SwerveConstants.kMaxAngularSpeed)
 
         # Field 2D
@@ -203,8 +215,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         omega = rot * SwerveConstants.kMaxAngularSpeed
 
         if rateLimit:
-            vx = self.xy_limit.calculate(vx)
-            vy = self.xy_limit.calculate(vy)
+            vx = self.x_limit.calculate(vx)
+            vy = self.y_limit.calculate(vy)
             omega = self.rot_limit.calculate(omega)
             
         speeds = ChassisSpeeds(vx, vy, omega)
@@ -238,5 +250,10 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
     def getAlliance(self):
         if self.alliance is None:
             self.alliance = DriverStation.getAlliance()
-        
+            if self.alliance is not None:
+                if self.alliance == DriverStation.Alliance.kRed:
+                    self.set_operator_perspective_forward(Rotation2d.fromDegrees(180))
+                else:
+                    self.set_operator_perspective_forward(Rotation2d.fromDegrees(0))
+
         return self.alliance

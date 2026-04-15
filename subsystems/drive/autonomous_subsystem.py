@@ -7,6 +7,7 @@ from pathplannerlib.auto import AutoBuilder, PathPlannerAuto, DriveFeedforwards
 from pathplannerlib.controller import PPHolonomicDriveController
 from pathplannerlib.config import PIDConstants
 from pathplannerlib.auto import NamedCommands, EventTrigger
+from pathplannerlib.util import FlippingUtil
 
 from wpimath.kinematics import ChassisSpeeds
 
@@ -90,6 +91,9 @@ class AutonomousSubsystem(Subsystem):
             paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName)
 
             poses = [pose for path in paths for pose in path.getPathPoses()]
+
+            if self.shouldFlipPath():
+                poses = [FlippingUtil.flipFieldPose(pose) for pose in poses]
 
             self.drivetrain.field.getObject("Auto Path").setPoses(poses)
 

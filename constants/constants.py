@@ -97,6 +97,7 @@ class ModuleConstants:
 
     kSlipCurrent = 300.0
     kDrivingMotorFreeSpeedRps = kMotorFreeSpeedRpm / 60.0
+    kSpeedAt12Volts = (kDrivingMotorFreeSpeedRps / kDriveGearRatio) * (2 * math.pi * kWheelRadius)
     kDriveWheelFreeSpeedRps  = (
         kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters
     ) / kDrivingMotorReduction
@@ -122,6 +123,7 @@ class ModuleConstants:
         .with_k_p(0.1)
         .with_k_i(0.0)
         .with_k_d(0.0)
+        .with_k_s(0.1)
     )
 
     kTurningGains = (
