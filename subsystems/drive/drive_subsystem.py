@@ -150,7 +150,8 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
 
     # Periodic
     def periodic(self) -> None:
-        self.getAlliance()
+        if self.alliance is None:
+            self.getAlliance()
 
         pose = self.get_state().pose
         self.field.setRobotPose(pose)
