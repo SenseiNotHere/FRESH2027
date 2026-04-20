@@ -13,6 +13,7 @@ from subsystems import DriveSubsystem, AutonomousSubsystem, OrchestraSubsystem
 from superstructure.superstructure import Superstructure
 from pathplannerlib.auto import AutoBuilder
 
+from button_bindings import ButtonBindings
 
 from utils import log, print_banner
 
@@ -79,7 +80,7 @@ class RobotContainer:
                 ),
                 deadband=OIConstants.kDriveDeadband,
                 fieldRelative=True,
-                rateLimit=False,
+                rateLimit=True,
                 square=True,
             )
         )
@@ -93,7 +94,7 @@ class RobotContainer:
         )
         log("RobotContainer", "OrchestraSubsystem Initialized!")
 
-        # Superstructure - MUST BE LAST!
+        # Superstructure - MUST BE LAST SUBSYSTEM!
         log("RobotContainer", "Initializing Superstructure...")
         self.megamente = Superstructure(
             drivetrain=self.vroomvroom,
@@ -101,6 +102,12 @@ class RobotContainer:
             driverController=self.vroomvroomController,
         )
         log("RobotContainer", "Superstructure Initialized!")
+
+                # Button Bindings
+        log("RobotContainer", "Initializing Button Bindings")
+        self.buttonBindings = ButtonBindings(self)
+        self.buttonBindings.configureButtonBindings()
+        log("RobotContainer", "Button Bindings Initialized!")
 
         print_banner("ROBOT INITIALIZATION COMPLETE")
 

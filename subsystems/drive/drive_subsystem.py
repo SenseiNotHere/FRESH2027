@@ -187,7 +187,7 @@ class DriveSubsystem(Subsystem, SwerveDrivetrain):
         Resets the odometry of the drivetrain to the specified pose.
         :param pose: The pose to which to set the odometry.
         """
-        self.seed_field_centric(pose.rotation())
+        self.reset_pose(pose)
         
     def getPose(self) -> Pose2d:
         """
