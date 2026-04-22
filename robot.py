@@ -13,7 +13,7 @@ class FRCRobot(TimedCommandRobot):
     testCommand: typing.Optional[Command] = None
 
     def robotInit(self) -> None:
-        self.robot_container = RobotContainer(self)
+        self.robot_container = RobotContainer()
 
     def disabledInit(self) -> None:
         pass
@@ -32,13 +32,13 @@ class FRCRobot(TimedCommandRobot):
     def teleopInit(self) -> None:
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
-        self.robot_container.smartyPlanner.clearAutoPreview()
+        self.robot_container.autonomous_subsystem.clearAutoPreview()
         
     def teleopPeriodic(self) -> None:
         pass
 
     def robotPeriodic(self) -> None:
-        self.robot_container.megamente.update()
+        self.robot_container.superstructure.update()
 
     def testInit(self) -> None:
         CommandScheduler.getInstance().cancelAll()

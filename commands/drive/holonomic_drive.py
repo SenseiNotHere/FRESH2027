@@ -28,9 +28,9 @@ class HolonomicDrive(commands2.Command):
         return False
 
     def execute(self):
-        fwd = applyDeadband(self.forwardSpeed(), self.deadband)
-        left = applyDeadband(self.leftSpeed(), self.deadband)
-        rot = applyDeadband(self.rotationSpeed(), self.deadband)
+        fwd = applyDeadband(self.forwardSpeed(), self.deadband) # type: ignore
+        left = applyDeadband(self.leftSpeed(), self.deadband) # type: ignore
+        rot = applyDeadband(self.rotationSpeed(), self.deadband) # type: ignore
 
         self.drivetrain.drive(
             xSpeed=fwd,

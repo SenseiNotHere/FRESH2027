@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import typing
-
-import commands2
-from commands2 import InstantCommand
+from commands2 import InstantCommand, Command
 from commands2.button import CommandGenericHID
 from wpilib import XboxController, SendableChooser, SmartDashboard
 
 from commands import HolonomicDrive
-from constants import OIConstants
+
+from constants import *
+
+from superstructure import Superstructure
 from subsystems import DriveSubsystem, AutonomousSubsystem, OrchestraSubsystem
-from superstructure.superstructure import Superstructure
-from pathplannerlib.auto import AutoBuilder
 
 from button_bindings import ButtonBindings
 
@@ -19,116 +18,71 @@ from utils import log, print_banner
 
 
 class RobotContainer:
-    """
-    Minimal robot container with drivetrain only.
+    def __init__(self):
+        print_banner("INITIALIZING ROBOT CONTAINER")
 
-    Subsystems Dictionary:
-    - vroomvroom: DriveSubsystem
-    - smartyPlanner: AutonomousSubsystem
-    - musically: OrchestraSubsystem
-    - megamente: Superstructure
-    """
+        # Controller
+        self.driver_controller = CommandGenericHID(OIConstants.kDriverControllerPort)
+        self.operator_controller = CommandGenericHID(OIConstants.kOperatorControllerPort)
 
-    def __init__(self, robot):
-        print_banner("DRIVETRAIN-ONLY INITIALIZATION STARTING")
+        # Subsystems
+        def slowdown_when():
+            return 0.5 if self.driver_controller.getRawAxis(XboxController.Axis.kLeftTrigger) < 0.5 else 1.0
 
-        # Drive Subsystem
-        log("RobotContainer", "Initializing DriveSubsystem...")
-        self.vroomvroom = DriveSubsystem(maxSpeedScaleFactor=lambda: 1.0)
-
-
-        log("RobotContainer", "DriveSubsystem Initialized!")
-
-        # Autonomous Subsystem
-        log("RobotContainer", "Initializing AutonomousSubsystem...")
-        self.smartyPlanner = AutonomousSubsystem(self.vroomvroom, self)
-        self._lastPreviewedAuto = None
-        log("RobotContainer", "AutonomousSubsystem Initialized!")
-
-        # Driver Controller
-        log("RobotContainer", "Initializing Driver Controller...")
-        self.vroomvroomController = CommandGenericHID(
-            OIConstants.kDriverControllerPort
+        self.drive_subsystem = DriveSubsystem(maxSpeedScaleFactor=slowdown_when)
+        self.autonomous_subsystem = AutonomousSubsystem(self.drive_subsystem)
+        self.orchestra = OrchestraSubsystem(
+            driveSubsystem=self.drive_subsystem,
         )
-        log("RobotContainer", "Driver Controller Initialized!")
 
-        # Choosers
-        log("RobotContainer", "Initializing Choosers...")
-        # Auto Chooser
-        self.autoChooser = AutoBuilder.buildAutoChooser()
-        SmartDashboard.putData("Auto Chooser", self.autoChooser)
+        # Superstructure - MUST BE LAST TO INITIALIZE
+        self.superstructure = Superstructure(
+            drivetrain=self.drive_subsystem,
+            orchestra=self.orchestra,
+            driverController=self.driver_controller,
+            operatorController=self.operator_controller
 
-        # Test Chooser
-        self.testChooser = SendableChooser()
-        self.testChooser.setDefaultOption("None", None)
-        SmartDashboard.putData("Test Chooser", self.testChooser)
-        log("RobotContainer", "Choosers Initialized!")
+        )
 
-        # Default Drive Command
-        log("RobotContainer", "Setting Default Drive Command...")
-        self.vroomvroom.setDefaultCommand(
+        # Button bindings
+        self.button_bindings = ButtonBindings(self, self.superstructure, self.driver_controller, self.operator_controller)
+        self.button_bindings.configureButtonBindings()
+
+        self.drive_subsystem.setDefaultCommand(
             HolonomicDrive(
-                self.vroomvroom,
-                forwardSpeed=lambda: -self.vroomvroomController.getRawAxis(
-                    XboxController.Axis.kLeftY
-                ),
-                leftSpeed=lambda: -self.vroomvroomController.getRawAxis(
-                    XboxController.Axis.kLeftX
-                ),
-                rotationSpeed=lambda: self.vroomvroomController.getRawAxis(
-                    XboxController.Axis.kRightX
-                ),
-                deadband=OIConstants.kDriveDeadband,
+                drivetrain=self.drive_subsystem,
+                forwardSpeed=lambda: -self.driver_controller.getRawAxis(XboxController.Axis.kLeftY),
+                leftSpeed=lambda: self.driver_controller.getRawAxis(XboxController.Axis.kLeftX),
+                rotationSpeed=lambda: self.driver_controller.getRawAxis(XboxController.Axis.kRightX),
                 fieldRelative=True,
                 rateLimit=True,
-                square=True,
+                square=True
             )
         )
-        log("RobotContainer", "Default Drive Command Set!")
 
-        
-        # Orchestra Subsystem
-        log("RobotContainer", "Initializing OrchestraSubsystem...")
-        self.musically = OrchestraSubsystem(
-            driveSubsystem=self.vroomvroom
-        )
-        log("RobotContainer", "OrchestraSubsystem Initialized!")
+        # Auto and Test Choosers
+        self.auto_chooser = SendableChooser()
+        self._lastPreviewedAuto = None
+        self.test_chooser = SendableChooser()
 
-        # Superstructure - MUST BE LAST SUBSYSTEM!
-        log("RobotContainer", "Initializing Superstructure...")
-        self.megamente = Superstructure(
-            drivetrain=self.vroomvroom,
-            orchestra=self.musically,
-            driverController=self.vroomvroomController,
-        )
-        log("RobotContainer", "Superstructure Initialized!")
-
-                # Button Bindings
-        log("RobotContainer", "Initializing Button Bindings")
-        self.buttonBindings = ButtonBindings(self)
-        self.buttonBindings.configureButtonBindings()
-        log("RobotContainer", "Button Bindings Initialized!")
-
-        print_banner("ROBOT INITIALIZATION COMPLETE")
+        print_banner("ROBOT CONTAINER INITIALIZATION COMPLETE")
 
     def updateAutoPreview(self):
-        selected = self.autoChooser.getSelected()
+        selected = self.auto_chooser.getSelected()
 
         if selected != self._lastPreviewedAuto:
-            self.smartyPlanner.drawAuto(selected)
+            self.autonomous_subsystem.drawAuto(selected)
             self._lastPreviewedAuto = selected
-
-    # Autonomous
-    def getAutonomousCommand(self) -> commands2.Command:
-        command = self.autoChooser.getSelected()
-
-        if command is None:
-            log("Autonomous", "WARNING: No autonomous routines selected!")
-            return InstantCommand()
-
-        log("Autonomous",f"Running autonomous routine: {command.getName()}")
-        return command
-
-    # Test Mode
-    def getTestCommand(self) -> typing.Optional[commands2.Command]:
-        return self.testChooser.getSelected()
+    
+    # Autonomous and Test Command Getters
+    def getAutonomousCommand(self) -> typing.Optional[InstantCommand]:
+        selected_auto = self.auto_chooser.getSelected()
+        if selected_auto is not None:
+            log("Robot Container", f"Selected autonomous: {selected_auto.name}")
+            return selected_auto.command
+        else:
+            log("Robot Container", "No autonomous selected")
+            return None
+        
+    def getTestCommand(self) -> typing.Optional[Command]:
+        return self.test_chooser.getSelected()

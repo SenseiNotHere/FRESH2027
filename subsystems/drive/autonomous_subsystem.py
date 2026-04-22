@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from commands2 import Subsystem
 from wpilib import DriverStation
 
@@ -14,19 +12,14 @@ from wpimath.kinematics import ChassisSpeeds
 from constants import AutoConstants
 
 from .drive_subsystem import DriveSubsystem
-from superstructure import Superstructure, RobotState, RobotReadiness, ReadinessList
 
 from utils import log
-
-if TYPE_CHECKING:
-    from robot_container import RobotContainer
 
 
 class AutonomousSubsystem(Subsystem):
     def __init__(
             self,
             drivetrain: DriveSubsystem,
-            robotContainer: "RobotContainer"
     ):
         """
         Autonomous Subsystem class. Handles all autonomous-related functionality.
@@ -38,8 +31,6 @@ class AutonomousSubsystem(Subsystem):
         super().__init__()
 
         self.drivetrain = drivetrain
-        self.robotContainer = robotContainer
-#        self.superstructure = robotContainer.superstructure
 
         # Register commands and event triggers
         self.registerNamedCommands()
