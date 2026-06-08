@@ -2,14 +2,15 @@ from wpilib import SmartDashboard, Timer
 from commands2 import FunctionalCommand
 from commands2.button import CommandGenericHID
 
-from subsystems.orchestra.orchestra_subsystem import OrchestraSubsystem
 from .superstructure_states import SuperstructureStates
 from .superstructure_helpers import SuperstructureHelpers
 from .robot_state import RobotState, RobotReadiness, ReadinessList
 from .auxiliary_actions import AuxiliaryActions
 
-from subsystems.drive.drive_subsystem import DriveSubsystem
-
+from subsystems import (
+    DriveSubsystem,
+    OrchestraSubsystem,
+)
 
 class Superstructure(SuperstructureStates, SuperstructureHelpers):
     _instance = None
@@ -25,14 +26,13 @@ class Superstructure(SuperstructureStates, SuperstructureHelpers):
         Superstructure.
 
         The Superstructure is the central coordination layer of the robot. It manages
-        high-level robot states and orchestrates interactions between subsystems such
-        as the drivetrain, intake, shooter, indexer, and agitator.
+        high-level robot states and orchestrates interactions between the robot's
+        subsystems.
 
         Instead of subsystems directly controlling each other, the Superstructure
         defines robot-wide states (RobotState) and executes the appropriate subsystem
         logic for each state. This keeps subsystem logic isolated while allowing the
-        robot to perform coordinated actions such as intaking, preparing a shot, and
-        shooting.
+        robot to perform coordinated actions.
 
         The Superstructure also tracks robot readiness conditions (RobotReadiness)
         which are used to determine when actions are safe to perform.
@@ -52,33 +52,38 @@ class Superstructure(SuperstructureStates, SuperstructureHelpers):
         if Superstructure._instance is not None:
             raise RuntimeError("Only one instance of Superstructure is allowed.")
         Superstructure._instance = self
-        
+
         # Subsystems
         self.drivetrain = drivetrain
         self.orchestra = orchestra
         self.driverController = driverController
         self.operatorController = operatorController
-        
+
         # Availability Flags
         self.hasOrchestra = self.orchestra is not None
         self.hasDriverController = self.driverController is not None
         self.hasOperatorController = self.operatorController is not None
-        
+
         # State Tracking
         self.robot_state = RobotState.IDLE
         self.robot_readiness = RobotReadiness()
         self.auxiliary_actions = AuxiliaryActions()
-        
+
+        # Rumble
+        self._rumble_end_time = None
+
+        # State to Handler Mapping
         self._state_handlers = {
-            # General States
             RobotState.IDLE: self._handle_idle,
+
+            # Music
             RobotState.PLAYING_SONG: self._handle_playing_song,
             RobotState.PLAYING_CHAMPIONSHIP_SONG: self._handle_playing_championship_song,
         }
 
         # Auxiliary Actions
         self.auxiliary_actions.update()
-        
+
         # Timers
         self._state_start_time = Timer.getFPGATimestamp()
 

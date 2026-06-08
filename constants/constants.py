@@ -1,5 +1,7 @@
+from enum import Enum
 import math
 
+import wpilib
 from wpimath import units
 from wpimath.geometry import Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
@@ -10,6 +12,7 @@ from phoenix6.configs import Slot0Configs
 
 from pathplannerlib.config import RobotConfig
 
+from utils import InterpolatingMap
 
 class SwerveConstants:
     # Robot geometry
@@ -157,4 +160,105 @@ class AutoConstants:
     kThetaControllerConstraints = TrapezoidProfileRadians.Constraints(
         kMaxAngularSpeedRadiansPerSecond,
         kMaxAngularSpeedRadiansPerSecondSquared
+    )
+
+class ShooterConstants:
+
+    kShooterMotorID = 9
+    kShooterMotorInverted = True
+    kShooterMotor2ID = 10
+    kShooterMotor2Inverted = False
+
+    kMinRPM = 600
+    kMaxRPM = 4500
+
+    kFF = 0.121
+    kP = 0.4
+    kI = 0.0001
+    kD = 0.0
+
+    kShooterSupplyLimit = 40
+    kShooterStatorLimit = 80
+
+    DISTANCE_TO_RPS = InterpolatingMap()
+    DISTANCE_TO_RPS.insert(1.0, 48.75) # minimum distance
+    DISTANCE_TO_RPS.insert(2.0, 51.75)
+    DISTANCE_TO_RPS.insert(2.5, 54.75)
+    DISTANCE_TO_RPS.insert(3.0, 56.75)
+    DISTANCE_TO_RPS.insert(3.5, 58.0)
+    DISTANCE_TO_RPS.insert(4.0, 60.0)
+    DISTANCE_TO_RPS.insert(4.5, 63.0)
+    DISTANCE_TO_RPS.insert(5.0, 67.5)
+    DISTANCE_TO_RPS.insert(5.5, 70.5) # maximum distance
+
+class IntakeConstants:
+    # CAN IDs
+    kDeployMotorID = 2
+    kRollerMotorID = 11
+
+    # Motor Inversions
+    kDeployMotorInverted = False
+    kRollerMotorInverted = True
+
+    # Deploy (Spark MAX)
+    kDeployP = 0.05
+    kDeployI = 0.0
+    kDeployD = 0.0
+    kDeployFF = 0.0
+
+    kDeployMinOutput = -1.0
+    kDeployMaxOutput = 1.0
+
+    # Positions (rotations)
+    kDeployPosition = 18.4
+    kStowPosition = 1.0
+
+    # Homing
+    kHomeSpeed = 0.1
+
+    # Anti-jam (position wiggle)
+    kPulsePosition = 9.0
+
+    # Rollers (TalonFX)
+    
+    kIntakeP = 2.6 
+    kIntakeI = 0.0
+    kIntakeD = 0.0
+    kIntakeFF = 0.112
+
+    kIntakeSpeed = 1200
+    kIntakePulseSpeed = 30
+class IndexerConstants:
+
+    kIndexerMotorID = 1
+    kIndexerMotorInverted = True
+
+    kMaxRPS = 40.0
+    kFeedRPS = 18.0
+
+    kP = 0.0
+    kI = 0.0
+    kD = 0.0
+    kFF = 0.12
+
+class AgitatorConstants:
+
+    kMotorCANID = 3
+    kMotorInverted = True
+
+
+class RobotModes(Enum):
+    REAL = "real"
+    SIM = "sim"
+    REPLAY = "replay"
+
+
+class RobotConstants:
+    kPDHCanID = 1
+
+    kEnablePDHLogging = True
+    kLogPDHChannels = True
+
+    kRobotMode: RobotModes = (
+        RobotModes.REAL if wpilib.RobotBase.isReal() else RobotModes.SIM
     )

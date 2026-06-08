@@ -12,7 +12,7 @@ class PhysicsEngine:
         if not self.robot.isEnabled():
             return
 
-        drivetrain = self.robot.robot_container.vroomvroom
+        drivetrain = self.robot.robot_container.drive_subsystem
         speeds = drivetrain.last_speeds
 
         self.heading = self.heading + Rotation2d(speeds.omega * tm_diff)

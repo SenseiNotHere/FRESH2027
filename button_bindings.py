@@ -12,17 +12,41 @@ if TYPE_CHECKING:
 
 
 class ButtonBindings:
+    """
+    Button bindings for the robot. Connects controllers to the commands that
+    operate on the subsystems, kept separate from RobotContainer so the mappings
+    stay focused.
+
+    This is a single-instance class. Constructing it a second time raises a
+    RuntimeError; use ButtonBindings.getInstance() to reach the existing one.
+    """
+    _instance: "ButtonBindings | None" = None
+
     def __init__(
-            self, 
-            robot_container: RobotContainer, 
-            superstructure: Superstructure, 
-            driver_controller: CommandGenericHID, 
+            self,
+            robot_container: RobotContainer,
+            superstructure: Superstructure,
+            driver_controller: CommandGenericHID,
             operator_controller: CommandGenericHID
             ):
+        if ButtonBindings._instance is not None:
+            raise RuntimeError(
+                "ButtonBindings is a single-instance class but was constructed twice. "
+                "Use ButtonBindings.getInstance() to reuse the existing instance."
+            )
+
         self.robotContainer = robot_container
         self.superstructure = superstructure
         self.driverController = driver_controller
         self.operatorController = operator_controller
+
+        ButtonBindings._instance = self
+
+    @classmethod
+    def getInstance(cls) -> "ButtonBindings":
+        if cls._instance is None:
+            raise RuntimeError("ButtonBindings has not been constructed yet.")
+        return cls._instance
 
     def configureButtonBindings(self):
         self._configureDriverBindings()
